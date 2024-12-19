@@ -3,6 +3,7 @@ import email
 from email.header import decode_header
 import smtplib
 from email.mime.text import MIMEText
+import requests
 import json
 import os
 import time
@@ -31,6 +32,8 @@ SMTP_SERVER = config.get("SMTP_SERVER")
 SMTP_PORT = config.get("SMTP_PORT", 465)  # Cambiar a 465 para SSL
 FILTER_KEYWORD = config.get("FILTER_KEYWORD", "URGENTE")
 PROMPT = config.get("PROMPT", "Escribe una respuesta profesional al correo que te ha llegado dando informacion sobre el tema que preguntan.")
+LLM_API_URL = config.get("LLM_API_URL")
+LLM_MODEL = config.get("LLM_MODEL")
 
 # Cargar IDs procesados
 if os.path.exists(PROCESSED_IDS_FILE):
@@ -152,9 +155,28 @@ def send_email(to_address, subject, body):
     except Exception as e:
         print(f"Error al enviar correo: {e}")
 
-# Procesar correo con el prompt
+# Procesar correo con el LLM
 def process_email_with_prompt(email_body):
-    return PROMPT.replace("{texto}", email_body)
+    try:
+        payload = {
+            "model": LLM_MODEL,
+            "messages": [
+                {"role": "system", "content": PROMPT},
+                {"role": "user", "content": email_body}
+            ]
+        }
+        print("Enviando solicitud al LLM...")
+        response = requests.post(LLM_API_URL, json=payload)
+        response.raise_for_status()
+        response_data = response.json()
+        if "message" in response_data and "content" in response_data["message"]:
+            return response_data["message"]["content"]
+        else:
+            print("Respuesta inválida del LLM.")
+            return "No se pudo generar una respuesta."
+    except Exception as e:
+        print(f"Error al procesar correo con LLM: {e}")
+        return "No se pudo procesar el correo."
 
 # Ciclo principal para verificar correos periódicamente
 def main_loop():

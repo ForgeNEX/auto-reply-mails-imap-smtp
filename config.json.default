@@ -1,4 +1,6 @@
 {
+	"LLM_API_URL": "http://localhost:11434/api/chat",
+    "LLM_MODEL": "llama3.2",
     "IMAP_SERVER": "mail.youtsmtp.com",
     "IMAP_PORT": 993,
     "EMAIL_USER": "info@email.com",
