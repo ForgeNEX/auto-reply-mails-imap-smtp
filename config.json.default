@@ -1,0 +1,10 @@
+{
+    "IMAP_SERVER": "mail.youtsmtp.com",
+    "IMAP_PORT": 993,
+    "EMAIL_USER": "info@email.com",
+    "EMAIL_PASS": "PASSWORD",
+    "SMTP_SERVER": "mail.youtsmtp.com",
+    "SMTP_PORT": 465,
+    "FILTER_KEYWORD": "URGENTE",
+    "PROMPT": "Escribe una respuesta profesional al correo que te ha llegado dando informacion sobre el tema que preguntan: {texto}"
+}
