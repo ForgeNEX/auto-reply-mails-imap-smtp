@@ -166,14 +166,22 @@ def process_email_with_prompt(email_body):
             ]
         }
         print("Enviando solicitud al LLM...")
-        response = requests.post(LLM_API_URL, json=payload)
-        response.raise_for_status()
-        response_data = response.json()
-        if "message" in response_data and "content" in response_data["message"]:
-            return response_data["message"]["content"]
-        else:
-            print("Respuesta inválida del LLM.")
-            return "No se pudo generar una respuesta."
+        with requests.post(LLM_API_URL, json=payload, stream=True) as response:
+            response.raise_for_status()
+            print("Procesando respuesta del LLM...")
+            full_response = ""
+            for line in response.iter_lines(decode_unicode=True):
+                if line:
+                    try:
+                        part = json.loads(line)
+                        if "message" in part and "content" in part["message"]:
+                            full_response += part["message"]["content"]
+                        if part.get("done", False):
+                            break
+                    except json.JSONDecodeError as e:
+                        print(f"Error decodificando fragmento del LLM: {e}")
+                        continue
+            return full_response if full_response else "No se pudo generar una respuesta."
     except Exception as e:
         print(f"Error al procesar correo con LLM: {e}")
         return "No se pudo procesar el correo."
